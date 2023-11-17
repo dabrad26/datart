@@ -4,6 +4,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig(() => {
   return {
+    base: '/datart',
     server: {
       port: 3000,
       open: true,
