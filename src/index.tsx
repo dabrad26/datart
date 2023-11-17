@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import 'normalize.css';
 import '@snowball-tech/design-tokens/dist/web/css/variables.css';
-import '@snowball-tech/design-tokens/dist/web/css/fonts.css';
 import '@snowball-tech/fractal/dist/fractal.css';
 import './index.scss';
 import { BrowserRouter as Router } from 'react-router-dom';
