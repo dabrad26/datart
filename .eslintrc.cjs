@@ -12,4 +12,14 @@ module.exports = {
   rules: {
     'semi': 'error'
   },
+  overrides: [
+    {
+      "files": [
+        "./src/interfaces/*.ts"
+      ],
+      "rules": {
+        "semi": "off"
+      }
+    }
+  ],
 }

@@ -1,0 +1,10 @@
+.data-test {
+  .button-container {
+    border-top: var(--border-1);
+    padding: 2rem 0;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+}
