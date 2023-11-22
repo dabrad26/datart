@@ -1,11 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { Paper, Typography, Loader, Card, Select, SelectItem, InputCheckbox, InputText, Textarea, Button } from '@snowball-tech/fractal';
+import { Paper, Typography, Loader, Card, Select, SelectItem, InputCheckbox, InputText, Textarea, Button, InputRadioGroup, InputRadio } from '@snowball-tech/fractal';
 import ErrorView from '../Error';
-import { UilMinusCircle } from '@iconscout/react-unicons';
+import { UilAngleDown, UilMinusCircle } from '@iconscout/react-unicons';
 import axios from 'axios';
 import xml2json from 'xml-js';
+import { SketchPicker } from 'react-color';
 import S3File from '../../interfaces/S3File';
+import ArtBoard from '../../ArtBoard';
+import linearImage from './linear.png';
+import radialImage from './radial.png';
+import timeEyeImage from './time-eye.png';
+import timeLineImage from './time-line.png';
 
 class Home extends React.Component<RouteComponentProps> {
   state = {
@@ -15,15 +22,42 @@ class Home extends React.Component<RouteComponentProps> {
     view: 'form',
     selectedVariables: [] as string[],
     timeVariable: '',
+    dimension: '',
     title: '',
     description: '',
     collapseCard: false,
+    artworkType: 'linear',
+    colorThemeChoice: 'theme-1',
+    colorSelection: [] as string[],
+    openColorPicker: undefined as number|undefined,
   };
 
   private errorData = '';
   private amazonUrl = 'https://datart-hackathon.s3.us-east-2.amazonaws.com';
-  private variableChoices: string[] = [];
-  private items: S3File[] = [];
+  private allItems: S3File[] = [];
+  private variableChoices: {
+    [key: string]: Map<string, S3File>,
+  } = {};
+
+  private themeChoices = {
+    'theme-1': ['red', 'green', 'blue'],
+    'theme-2': ['orange', 'pink', 'grey'],
+  };
+
+  private iterableToArray = (iterable: IterableIterator<unknown>): any[] => {
+    const newArray = [];
+
+    (function addItem(): void {
+      const value = iterable.next();
+
+      if (!value.done) {
+        newArray.push(value.value);
+        addItem();
+      }
+    }());
+
+    return newArray;
+  };
 
   private uppercaseChoice(text: string): string {
     return text.charAt(0).toUpperCase() + text.slice(1);
@@ -39,18 +73,38 @@ class Home extends React.Component<RouteComponentProps> {
   };
 
   private get artView(): React.ReactNode {
-    const {title, description, collapseCard} = this.state;
+    const {title, description, collapseCard, timeVariable, selectedVariables, dimension, colorSelection} = this.state;
+    const dataMatrix: {[key: string]: S3File[]} = {};
+
+    this.allItems.forEach(item => {
+      selectedVariables.forEach(value => {
+        if (item.properties && (item.properties as any)[dimension] === value) {
+          dataMatrix[value] ? dataMatrix[value].push(item) : dataMatrix[value] = [item];
+        }
+      });
+    });
+
+
+    const noNeedToCollapse = (!title && !description);
 
     return (
       <>
-        <div className="art-fullscreen">
-          <Card color="success" style={{margin: '2rem', overflow: 'auto', maxHeight: '80%'}}>{JSON.stringify(this.items, undefined, 2)}</Card>
-        </div>
-        <Card className={`floating-card ${(collapseCard || (!title && !description)) ? 'collapsed' : ''}`} color="success">
+        <ArtBoard
+          allItems={this.allItems}
+          timeVariable={timeVariable}
+          data={dataMatrix}
+          colorChoices={colorSelection}
+        />
+        <Card className={`floating-card ${(collapseCard || noNeedToCollapse) ? 'collapsed' : ''}`} color="success">
           {!!(title && !collapseCard) && <Typography className="floating-card--title" variant="display-1">{title}</Typography>}
           {!!(description && !collapseCard) && <Typography className="floating-card--description" variant="body-2">{description}</Typography>}
-          <Typography className="floating-card--legend" variant="body-2">TODO: Legend goes here!</Typography>
-          <div className="collapse-button" title="Collapse card" onClick={() => this.setState({collapseCard: !collapseCard})}><UilMinusCircle /></div>
+          <Typography className="floating-card--legend" variant="body-2">{selectedVariables.map((item, index) => {
+            return <div className="ledgend-item">
+              <span style={{backgroundColor: colorSelection[index]}} className="color-preview-item small" />
+              <span className="legend-text">{item}</span>
+            </div>;
+          })}</Typography>
+         {!noNeedToCollapse && <div className="collapse-button" title="Collapse card" onClick={() => this.setState({collapseCard: !collapseCard})}><UilMinusCircle /></div>}
         </Card>
       </>
     );
@@ -66,7 +120,7 @@ class Home extends React.Component<RouteComponentProps> {
   }
 
   private get formView(): React.ReactNode {
-    const {selectedVariables, timeVariable, title, description} = this.state;
+    const {selectedVariables, timeVariable, title, description, dimension, artworkType, colorThemeChoice, colorSelection, openColorPicker} = this.state;
 
     const adjustCheck = (checkedItem: string): void => {
       const foundIndex = selectedVariables.indexOf(checkedItem);
@@ -80,26 +134,86 @@ class Home extends React.Component<RouteComponentProps> {
       this.setState({selectedVariables});
     };
 
+    const dimensions = Object.keys(this.variableChoices);
+    const values = this.iterableToArray((this.variableChoices[dimension] || new Map()).keys());
+
+    const changeArtStyle = (value: string): void => {
+      this.setState({artworkType: value});
+    };
+
+    const disabledGenerate = !selectedVariables.length || (artworkType.includes('time-') ? !timeVariable : false);
+
     return (
       <>
         {this.headerLabel}
         <Paper elevation="1" className="has-actions-paper">
+          <Typography className="form-headings" variant="heading-1">Data source</Typography>
           <Select label="Select your data" value={this.amazonUrl}><SelectItem value={this.amazonUrl}>{this.amazonUrl}</SelectItem></Select>
-          <Typography className="fake-label" variant="body-1">Select variables</Typography>
+          <Select
+            label="Choose a dimension"
+            value={dimension}
+            onSelect={data => {
+
+              this.setState({dimension: data, selectedVariables: this.iterableToArray(this.variableChoices[data].keys()).slice(0, 2)});
+            }}
+          >
+            {dimensions.map(dimensionKey => {
+              return <SelectItem key={dimensionKey} value={dimensionKey}>{`${this.uppercaseChoice(dimensionKey)} (${dimensionKey})`}</SelectItem>;
+            })}
+          </Select>
+          <Typography className="fake-label" variant="body-1">Select values</Typography>
           <div className="checkbox-wrapper">
-            {this.variableChoices.map(variable => {
+            {values.map(variable => {
               const checked  = selectedVariables.includes(variable);
               return <InputCheckbox key={variable} disabled={selectedVariables.length >= 3 && !checked} label={this.uppercaseChoice(variable)} variant="primary" onCheckedChange={() => adjustCheck(variable)} checked={checked} />;
             })}
           </div>
-          <Select label="Choose a time variable (optional)" value={timeVariable} onSelect={data => this.setState({timeVariable: data})}>
-            {Object.keys(this.items[0] && this.items[0].properties ? this.items[0].properties : {}).map(key => {
-              return <SelectItem key={key} value={key}>{`${this.uppercaseChoice(key)} (${key})`}</SelectItem>;
+          <Typography className="form-headings" variant="heading-1">Artwork</Typography>
+          <InputRadioGroup onValueChange={changeArtStyle} value={artworkType}>
+            <div className="items">
+              <InputRadio label={<img className="artwork-preview" src={linearImage} title="Linear" alt="Linear" /> as unknown as string} value="linear" />
+              <InputRadio label={<img className="artwork-preview" src={radialImage} title="Radial" alt="Radial" /> as unknown as string} value="radial" />
+            </div>
+            <Typography className="fake-label" variant="body-1">Time based art styles</Typography>
+            <Typography className="fake-helper" variant="caption-median">Choose more complex art styles by adding a time dimension </Typography>
+            <div className="items">
+              <InputRadio label={<img className="artwork-preview" src={timeLineImage} title="Time Line" alt="Time Line" /> as unknown as string} value="time-line" />
+              <InputRadio label={<img className="artwork-preview" src={timeEyeImage} title="Time Eye" alt="Time Eye" /> as unknown as string} value="time-eye" />
+            </div>
+          </InputRadioGroup>
+          {artworkType.includes('time-') && <Select label="Which dimension represents time?" value={timeVariable} onSelect={data => this.setState({timeVariable: data})}>
+            {dimensions.map(dimensionKey => {
+              return <SelectItem key={dimensionKey} value={dimensionKey}>{`${this.uppercaseChoice(dimensionKey)} (${dimensionKey})`}</SelectItem>;
             })}
-          </Select>
+          </Select>}
+          <Typography className="fake-label" variant="body-1">Choose a color palette</Typography>
+          {!!selectedVariables.length && <>
+            <InputRadioGroup className="theme-items" onValueChange={value => this.setState({colorThemeChoice: value, colorSelection: (this.themeChoices as any)[value]})} value={colorThemeChoice}>
+              <div className="items">
+                {Object.keys(this.themeChoices).map(key => <InputRadio key={key} label={<div className="color-theme-preview">{(this.themeChoices as any)[key].slice(0, selectedVariables.length).map((color: string) => <span className="color-preview-item" key={color} style={{backgroundColor: color}} />)}</div> as unknown as string} value={key} />)}
+              </div>
+            </InputRadioGroup>
+            <div className="color-pickers">
+              {colorSelection.slice(0, selectedVariables.length).map((color, index) => {
+                return <div className="color-picker">
+                  <Button label={<span style={{backgroundColor: colorSelection[index], width: 24, height: 24}} className="color-preview-item" /> as unknown as string} icon={<UilAngleDown />} variant="display" onClick={() => this.setState({openColorPicker: openColorPicker === index ? undefined : index})} />
+                  <SketchPicker
+                    className={`color-picker--popup ${openColorPicker === index ? 'open' : 'close'}`}
+                    color={color}
+                    disableAlpha={true}
+                    onChangeComplete={newColor => {
+                      const newColorSelection = colorSelection.map(colorString => colorString);
+                      newColorSelection[index] = newColor.hex;
+                      this.setState({colorSelection: newColorSelection});
+                    }}
+                  />
+                </div>;
+              })}
+            </div>
+          </>}
           <InputText label="Title (optional)" onChange={(_event, data) => this.setState({title: data})} placeholder="Add a title to your artwork" type="text" value={title} />
           <Textarea label="Description (optional)" onChange={(_event, data) => this.setState({description: data})} placeholder="Include a more detail instruction for your art." value={description}></Textarea>
-          <Button className="paper-submit-button" disabled={!selectedVariables.length} label="Generate art" onClick={this.generateArt} />
+          <Button className="paper-submit-button" disabled={disabledGenerate} label="Generate art" onClick={this.generateArt} />
           <Button className="paper-secondary-button" variant="secondary" label="Go to data loader" onClick={this.openDataLoader} />
         </Paper>
       </>
@@ -139,7 +253,6 @@ class Home extends React.Component<RouteComponentProps> {
     axios.get(`${this.amazonUrl}/?list-type=2`).then(response => {
       const promises: Promise<unknown>[] = [];
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       JSON.parse(xml2json.xml2json(response.data, {compact: true, spaces: 4}))?.ListBucketResult?.Contents?.forEach((item: any) => {
         const path = item?.Key?._text;
 
@@ -154,17 +267,41 @@ class Home extends React.Component<RouteComponentProps> {
               path: item.Key?._text,
             };
 
-            if (newItem.properties.source && !this.variableChoices.includes(newItem.properties.source)) {
-              this.variableChoices.push(newItem.properties.source);
-            }
+            const keys = Object.keys(newItem.properties || {});
 
-            this.items.push(newItem);
+            if (keys.length) {
+              this.allItems.push(newItem);
+              keys.forEach(key => {
+                let foundMap = this.variableChoices[key];
+
+                if (!foundMap) {
+                  this.variableChoices[key] = new Map();
+                  foundMap = this.variableChoices[key];
+                }
+
+                const foundValue = (newItem.properties as any)[key];
+
+                if (typeof foundValue === 'string') {
+                  foundMap.set(foundValue, newItem);
+                }
+              });
+            }
           }));
         }
       });
 
       return Promise.all(promises).then(() => {
-        this.setState({loading: false, longLoading: false, selectedVariables: this.variableChoices.slice(0, 2)});
+        let dimension = 'rtlm_channel';
+        let selectedVariables: string[] = [];
+
+        if (this.variableChoices[dimension]) {
+          selectedVariables = this.iterableToArray(this.variableChoices[dimension].keys()).slice(0, 2);
+        } else if (Object.keys(this.variableChoices).length) {
+          dimension = Object.keys(this.variableChoices)[0];
+          selectedVariables = this.iterableToArray(this.variableChoices[dimension].keys()).slice(0, 2);
+        }
+
+        this.setState({loading: false, longLoading: false, dimension, selectedVariables, colorSelection: this.themeChoices['theme-1']});
       });
     }).catch(error => {
       this.errorData = error;

@@ -3,7 +3,7 @@ Data Art Hackathon Project for DataPalooza.
 
 ## Participants
 
-- Cynthia Yue
+- Cynthia Yue (https://github.com/Cynthesizer)
 - Ricky Lau
 - Alex Young
-- David Bradshaw
+- David Bradshaw (https://github.com/dabrad26)
