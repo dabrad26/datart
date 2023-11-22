@@ -20,15 +20,6 @@ class Datatest extends React.Component<RouteComponentProps> {
     });
   };
 
-  componentDidMount(): void {
-    this.analytics.identify('data-test-site', {
-      first_name: "Data",
-      id: "data-test-site",
-      last_name: "Test",
-      website: window.location.host,
-    });
-  }
-
   render(): React.ReactNode {
     return (
       <div className='data-test standard-content'>
