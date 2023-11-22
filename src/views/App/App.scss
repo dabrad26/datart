@@ -7,3 +7,121 @@
 .center-content {
   text-align: center;
 }
+
+.heading-caption {
+  margin-top: 0.25rem;
+}
+
+
+.heading-with-caption {
+  margin-bottom: 0;
+}
+
+.fractal-card {
+  white-space: pre;
+  overflow-y: auto;
+}
+
+.content-push {
+  margin-bottom: 2.25rem;
+}
+
+.fractal-input-text > div {
+  width: 100%;
+}
+
+.fractal-select,
+.fractal-input-text,
+.fractal-input-textarea {
+  width: 100%;
+  margin-bottom: 1.5rem;
+
+  input,
+  textarea {
+    width: 100%;
+  }
+
+  textarea {
+    min-height: 100px;
+  }
+}
+
+.checkbox-wrapper {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5em;
+}
+
+.fake-label {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.has-actions-paper {
+  padding-bottom: 100px;
+  position: relative;
+
+  .paper-submit-button {
+    position: absolute;
+    right: 32px;
+    bottom: 32px;
+  }
+
+  .paper-secondary-button {
+    position: absolute;
+    left: 32px;
+    bottom: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .paper-submit-button,
+    .paper-secondary-button {
+      position: static;
+      margin-bottom: 1rem;
+    }
+  }
+}
+
+.floating-card {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  max-width: 642px;
+  width: 80%;
+  background-color: white;
+  border: 1px solid black;
+  padding-right: 48px;
+  z-index: 99;
+
+  &--title {
+    margin: 0;
+    margin-bottom: 8px;
+    line-height: 2rem;
+  }
+
+  &--legend {
+    margin-bottom: 0;
+  }
+
+  &.collapsed {
+    .floating-card--legend {
+      margin: 0;
+    }
+  }
+
+  .collapse-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    cursor: pointer;
+  }
+}
+
+.art-fullscreen {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+}

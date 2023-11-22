@@ -1,8 +1,9 @@
 import React from 'react';
 import { Route, RouteComponentProps, Switch, withRouter } from 'react-router-dom';
 import './App.scss';
-import Error from '../Error';
+import ErrorView from '../Error';
 import Home from '../Home';
+import DataTest from '../DataTest';
 
 class App extends React.Component<RouteComponentProps> {
   componentDidMount(): void {
@@ -21,8 +22,11 @@ class App extends React.Component<RouteComponentProps> {
         <Route exact={true} path="/">
           <Home />
         </Route>
+        <Route exact={true} path="/data-test">
+          <DataTest />
+        </Route>
         <Route path="*">
-          <Error />
+          <ErrorView data="Page not found" />
         </Route>
       </Switch>
     );
