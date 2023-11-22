@@ -32,7 +32,8 @@
 
 .fractal-select,
 .fractal-input-text,
-.fractal-input-textarea {
+.fractal-input-textarea,
+.fractal-input-radio-group .items {
   width: 100%;
   margin-bottom: 1.5rem;
 
@@ -107,6 +108,20 @@
   &.collapsed {
     .floating-card--legend {
       margin: 0;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+
+      .ledgend-item {
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .legend-text {
+        display: inline-block;
+        line-height: 16px;
+        margin-left: 6px;
+      }
     }
   }
 
@@ -118,10 +133,90 @@
   }
 }
 
-.art-fullscreen {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
+.fractal-input-radio-group {
+  gap: 0;
+
+  .items {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--size-spacing-3);
+  }
+
+  button {
+    align-self: flex-start;
+    height: 70px;
+
+    & > div {
+      padding: 0;
+    }
+
+    svg {
+      margin-top: 3px;
+    }
+  }
+}
+
+.form-headings {
+  margin: 0;
+}
+
+.fake-helper {
+  margin-top: 0;
+}
+
+.artwork-preview {
+  width: 186px;
+  height: 145px;
+}
+
+.color-preview-item {
+  border-radius: var(--size-radius-s);
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+
+  &.small {
+    border-radius: var(--size-radius-xs);
+    width: 16px;
+    height: 16px;
+
+  }
+}
+
+.color-theme-preview {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.theme-items {
+  label {
+    line-height: 13px;
+  }
+}
+
+.color-pickers {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 1.5rem;
+}
+
+.color-picker {
+  position: relative;
+  margin-right: 0.5rem;
+
+  &--popup {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 99999;
+
+    &.close {
+      display: none;
+    }
+
+    &.open {
+      display: block;
+    }
+  }
 }
