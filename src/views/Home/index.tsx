@@ -13,6 +13,7 @@ import linearImage from './linear.png';
 import radialImage from './radial.png';
 import timeEyeImage from './time-eye.png';
 import timeLineImage from './time-line.png';
+import { mockApiData } from '../../mocks/data';
 
 class Home extends React.Component<RouteComponentProps> {
   state = {
@@ -195,7 +196,7 @@ class Home extends React.Component<RouteComponentProps> {
             </InputRadioGroup>
             <div className="color-pickers">
               {colorSelection.slice(0, selectedVariables.length).map((color, index) => {
-                return <div className="color-picker">
+                return <div className="color-picker" key={index}>
                   <Button label={<span style={{backgroundColor: colorSelection[index], width: 24, height: 24}} className="color-preview-item" /> as unknown as string} icon={<UilAngleDown />} variant="display" onClick={() => this.setState({openColorPicker: openColorPicker === index ? undefined : index})} />
                   <SketchPicker
                     className={`color-picker--popup ${openColorPicker === index ? 'open' : 'close'}`}
@@ -245,11 +246,52 @@ class Home extends React.Component<RouteComponentProps> {
     }
   }
 
-  componentDidMount(): void {
-    setTimeout(() => {
-      this.setState({longLoading: true});
-    }, 4000);
+  private parseData = (apiData: any, s3Response: any): void => {
+    const newItem: S3File = {
+      event: apiData.event,
+      properties: apiData.properties || {},
+      lastModified: s3Response.LastModified?._text,
+      size: s3Response.Size?._text,
+      storageClass: s3Response.StorageClass?._text,
+      path: s3Response.Key?._text,
+    };
 
+    const keys = Object.keys(newItem.properties || {});
+
+    if (keys.length) {
+      this.allItems.push(newItem);
+      keys.forEach(key => {
+        let foundMap = this.variableChoices[key];
+
+        if (!foundMap) {
+          this.variableChoices[key] = new Map();
+          foundMap = this.variableChoices[key];
+        }
+
+        const foundValue = (newItem.properties as any)[key];
+
+        if (typeof foundValue === 'string') {
+          foundMap.set(foundValue, newItem);
+        }
+      });
+    }
+  };
+
+  private finalSetup = (): void => {
+    let dimension = 'rtlm_channel';
+    let selectedVariables: string[] = [];
+
+    if (this.variableChoices[dimension]) {
+      selectedVariables = this.iterableToArray(this.variableChoices[dimension].keys()).slice(0, 2);
+    } else if (Object.keys(this.variableChoices).length) {
+      dimension = Object.keys(this.variableChoices)[0];
+      selectedVariables = this.iterableToArray(this.variableChoices[dimension].keys()).slice(0, 2);
+    }
+
+    this.setState({loading: false, longLoading: false, dimension, selectedVariables, colorSelection: this.themeChoices['theme-1']});
+  };
+
+  private makeApiCall = (): void => {
     axios.get(`${this.amazonUrl}/?list-type=2`).then(response => {
       const promises: Promise<unknown>[] = [];
 
@@ -258,56 +300,43 @@ class Home extends React.Component<RouteComponentProps> {
 
         if (typeof path === 'string' && path.slice(-3) === '.gz') {
           promises.push(axios.get(`${this.amazonUrl}/${path}`).then(content => {
-            const newItem: S3File = {
-              event: content.data.event,
-              properties: content.data.properties || {},
-              lastModified: item.LastModified?._text,
-              size: item.Size?._text,
-              storageClass: item.StorageClass?._text,
-              path: item.Key?._text,
-            };
-
-            const keys = Object.keys(newItem.properties || {});
-
-            if (keys.length) {
-              this.allItems.push(newItem);
-              keys.forEach(key => {
-                let foundMap = this.variableChoices[key];
-
-                if (!foundMap) {
-                  this.variableChoices[key] = new Map();
-                  foundMap = this.variableChoices[key];
-                }
-
-                const foundValue = (newItem.properties as any)[key];
-
-                if (typeof foundValue === 'string') {
-                  foundMap.set(foundValue, newItem);
-                }
-              });
-            }
+            this.parseData(content.data, item);
           }));
         }
       });
 
       return Promise.all(promises).then(() => {
-        let dimension = 'rtlm_channel';
-        let selectedVariables: string[] = [];
-
-        if (this.variableChoices[dimension]) {
-          selectedVariables = this.iterableToArray(this.variableChoices[dimension].keys()).slice(0, 2);
-        } else if (Object.keys(this.variableChoices).length) {
-          dimension = Object.keys(this.variableChoices)[0];
-          selectedVariables = this.iterableToArray(this.variableChoices[dimension].keys()).slice(0, 2);
-        }
-
-        this.setState({loading: false, longLoading: false, dimension, selectedVariables, colorSelection: this.themeChoices['theme-1']});
+        this.finalSetup();
       });
     }).catch(error => {
       this.errorData = error;
       console.error(error);
       this.setState({loading: false, longLoading: false, error: true});
     });
+  };
+
+  private useMockData = (): void => {
+    mockApiData.items.forEach((item, index) => {
+      if (mockApiData.s3Responses[index]) {
+        this.parseData(item, mockApiData.s3Responses[index]);
+      }
+    });
+
+    // Set this higher to test the loading animation and delayed response
+    setTimeout(() => {
+      this.finalSetup();
+    }, 1200);
+  };
+
+  componentDidMount(): void {
+    setTimeout(() => {
+      this.setState({longLoading: true});
+    }, 4000);
+
+    // Turning off real API calls until final demo. Using mock data
+    // This should be turned back on for the demo
+    // this.makeApiCall();
+    this.useMockData();
   }
 
   render(): React.ReactNode {
