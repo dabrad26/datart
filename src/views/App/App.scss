@@ -103,25 +103,25 @@
 
   &--legend {
     margin-bottom: 0;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+
+    .ledgend-item {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .legend-text {
+      display: inline-block;
+      line-height: 16px;
+      margin-left: 6px;
+    }
   }
 
   &.collapsed {
     .floating-card--legend {
       margin: 0;
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-
-      .ledgend-item {
-        display: flex;
-        align-items: flex-start;
-      }
-
-      .legend-text {
-        display: inline-block;
-        line-height: 16px;
-        margin-left: 6px;
-      }
     }
   }
 
