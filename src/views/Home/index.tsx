@@ -292,6 +292,7 @@ class Home extends React.Component<RouteComponentProps> {
   };
 
   private makeApiCall = (): void => {
+    console.info('Making API calls for real data');
     axios.get(`${this.amazonUrl}/?list-type=2`).then(response => {
       const promises: Promise<unknown>[] = [];
 
@@ -316,6 +317,7 @@ class Home extends React.Component<RouteComponentProps> {
   };
 
   private useMockData = (): void => {
+    console.info('Loading mock data');
     mockApiData.items.forEach((item, index) => {
       if (mockApiData.s3Responses[index]) {
         this.parseData(item, mockApiData.s3Responses[index]);
@@ -335,8 +337,13 @@ class Home extends React.Component<RouteComponentProps> {
 
     // Turning off real API calls until final demo. Using mock data
     // This should be turned back on for the demo
-    // this.makeApiCall();
-    this.useMockData();
+    const useRealData = false;
+
+    if (useRealData) {
+      this.makeApiCall();
+    } else {
+      this.useMockData();
+    }
   }
 
   render(): React.ReactNode {
