@@ -131,7 +131,7 @@ class Datatest extends React.Component<RouteComponentProps> {
     }
 
     if (error) {
-      return <ErrorView data={this.errorData} message="CVS parsing error" />;
+      return <ErrorView data={this.errorData} message="CSV parsing error" />;
     }
 
     return (
