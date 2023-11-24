@@ -233,7 +233,7 @@ class Home extends React.Component<RouteComponentProps> {
         </>
       );
     } else if (error) {
-      return <ErrorView data={this.errorData} />;
+      return <ErrorView data={this.errorData} message="Unable to get required data" />;
     }
 
     switch (view) {

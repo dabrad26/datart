@@ -26,7 +26,7 @@ class App extends React.Component<RouteComponentProps> {
           <DataTest />
         </Route>
         <Route path="*">
-          <ErrorView data="Page not found" />
+          <ErrorView data="Page not found" message="Page not found" />
         </Route>
       </Switch>
     );
