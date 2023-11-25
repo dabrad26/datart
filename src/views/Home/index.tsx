@@ -3,12 +3,12 @@ import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Paper, Typography, Loader, Card, Select, SelectItem, InputCheckbox, InputText, Textarea, Button, InputRadioGroup, InputRadio } from '@snowball-tech/fractal';
 import ErrorView from '../Error';
-import { UilAngleDown, UilMinusCircle } from '@iconscout/react-unicons';
+import { UilAngleDown, UilMinusCircle, UilEdit } from '@iconscout/react-unicons';
 import axios from 'axios';
 import xml2json from 'xml-js';
 import { SketchPicker } from 'react-color';
 import S3File from '../../interfaces/S3File';
-import ArtBoard from '../../ArtBoard';
+import ArtBoard, { ArtworkTypes } from '../../ArtBoard';
 import linearImage from './linear.png';
 import radialImage from './radial.png';
 import timeEyeImage from './time-eye.png';
@@ -27,7 +27,7 @@ class Home extends React.Component<RouteComponentProps> {
     title: '',
     description: '',
     collapseCard: false,
-    artworkType: 'linear',
+    artworkType: 'linear' as ArtworkTypes,
     colorThemeChoice: 'theme-1',
     colorSelection: [] as string[],
     openColorPicker: undefined as number|undefined,
@@ -41,8 +41,8 @@ class Home extends React.Component<RouteComponentProps> {
   } = {};
 
   private themeChoices = {
-    'theme-1': ['red', 'green', 'blue'],
-    'theme-2': ['orange', 'pink', 'grey'],
+    'theme-1': ['red', 'yellow', 'blue', 'orange', 'green'],
+    'theme-2': ['orange', 'pink', 'grey', 'purple', 'brown'],
   };
 
   private iterableToArray = (iterable: IterableIterator<unknown>): any[] => {
@@ -64,7 +64,38 @@ class Home extends React.Component<RouteComponentProps> {
     return text.charAt(0).toUpperCase() + text.slice(1).replace(/_/g, ' ');
   }
 
+  private safeEncode = (item: any): string => {
+    try {
+      return btoa(encodeURIComponent(JSON.stringify(item)));
+    } catch (error) {
+      console.error('safeEncode: failed to encode', error);
+      return '';
+    }
+  };
+
+  private safeDecode = (item: string): any|null => {
+    try {
+      return JSON.parse(decodeURIComponent(atob(item)));
+    } catch (error) {
+      console.error('safeEncode: failed to encode', error);
+      return null;
+    }
+  };
+
+  private resetView = (): void => {
+    const {history} = this.props;
+    history.push('#');
+    this.setState({view: 'form'});
+  };
+
   private generateArt = (): void => {
+    const {history} = this.props;
+    const encodeString = this.safeEncode(Object.assign(this.state, {view: 'art'}));
+
+    if (encodeString) {
+      history.push(`#${encodeString}`);
+    }
+
     this.setState({view: 'art'});
   };
 
@@ -73,7 +104,7 @@ class Home extends React.Component<RouteComponentProps> {
   };
 
   private get artView(): React.ReactNode {
-    const {title, description, collapseCard, timeVariable, selectedVariables, dimension, colorSelection} = this.state;
+    const {title, description, collapseCard, timeVariable, selectedVariables, dimension, colorSelection, artworkType} = this.state;
     const dataMatrix: {[key: string]: S3File[]} = {};
 
     this.allItems.forEach(item => {
@@ -87,24 +118,34 @@ class Home extends React.Component<RouteComponentProps> {
 
     const noNeedToCollapse = (!title && !description);
 
+    const colorChoices: {[key: string]: string} = {};
+
+    selectedVariables.forEach((key, index) => {
+      colorChoices[key] = colorSelection[index];
+    });
+
     return (
       <>
         <ArtBoard
+          type={artworkType}
           allItems={this.allItems}
           timeVariable={timeVariable}
           data={dataMatrix}
-          colorChoices={colorSelection}
+          colorChoices={colorChoices}
         />
         <Card className={`floating-card ${(collapseCard || noNeedToCollapse) ? 'collapsed' : ''}`} color="success">
           {!!(title && !collapseCard) && <Typography className="floating-card--title" variant="display-1">{title}</Typography>}
           {!!(description && !collapseCard) && <Typography className="floating-card--description" variant="body-2">{description}</Typography>}
           <Typography className="floating-card--legend" variant="body-2">{selectedVariables.map((item, index) => {
-            return <div className="ledgend-item">
+            return <div key={index} className="ledgend-item">
               <span style={{backgroundColor: colorSelection[index]}} className="color-preview-item small" />
               <span className="legend-text">{item}</span>
             </div>;
           })}</Typography>
-         {!noNeedToCollapse && <div className="collapse-button" title="Collapse card" onClick={() => this.setState({collapseCard: !collapseCard})}><UilMinusCircle /></div>}
+          <div className="collapse-buttons">
+            {<div className="collapse-button" title="Edit art" onClick={this.resetView}><UilEdit /></div>}
+            {!noNeedToCollapse && <div className="collapse-button" title="Collapse card" onClick={() => this.setState({collapseCard: !collapseCard})}><UilMinusCircle /></div>}
+          </div>
         </Card>
       </>
     );
@@ -163,9 +204,9 @@ class Home extends React.Component<RouteComponentProps> {
           </Select>
           <Typography className="fake-label" variant="body-1">Select values</Typography>
           <div className="checkbox-wrapper">
-            {values.map(variable => {
+            {values.slice(0, 12).map(variable => {
               const checked  = selectedVariables.includes(variable);
-              return <InputCheckbox key={variable} disabled={selectedVariables.length >= 3 && !checked} label={this.uppercaseChoice(variable)} variant="primary" onCheckedChange={() => adjustCheck(variable)} checked={checked} />;
+              return <InputCheckbox key={variable} disabled={selectedVariables.length >= 5 && !checked} label={this.uppercaseChoice(variable)} variant="primary" onCheckedChange={() => adjustCheck(variable)} checked={checked} />;
             })}
           </div>
           <Typography className="form-headings" variant="heading-1">Artwork</Typography>
@@ -277,6 +318,19 @@ class Home extends React.Component<RouteComponentProps> {
   };
 
   private finalSetup = (): void => {
+    const {location} = this.props;
+    const hashValue = (location.hash || '').slice(1);
+
+    if (hashValue) {
+      const decodeHash = this.safeDecode(hashValue);
+
+      if (decodeHash) {
+        this.setState(decodeHash);
+
+        return;
+      }
+    }
+
     let dimension = 'mktg_channel';
     let selectedVariables: string[] = [];
 
