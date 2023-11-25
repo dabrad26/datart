@@ -1,20 +1,18 @@
+/** Possible marketing channels */
+export type MarketingChannel = 'Affiliates'|'Content Syndication'|'Direct Mail'|'Email'|'Events'|'SEM';
+
 /**
  * Segment properties sent with each event.
  */
 export interface SegmentProperty {
-  source_and_segment?: string;
-  region_adj?: string;
-  hills_adj?: string;
-  segment_group?: string;
-  channel_adj?: string;
-  dfr_id?: string;
-  segment_name?: string;
-  sales_territory_country?: string;
-  lead_source?: string;
-  high_level_lead_source?: string;
-  created_month?: string;
   created_date?: string;
-  rtlm_channel?: string;
+  created_month?: number;
+  kpi_adjusted?: string;
+  sales_territory_country?: string;
+  mktg_channel?: MarketingChannel;
+  lead_count?: number;
+  opp_count?: number;
+  aMRR_calc?: string;
 }
 
 export default interface S3File {

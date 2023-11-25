@@ -61,11 +61,10 @@ class Home extends React.Component<RouteComponentProps> {
   };
 
   private uppercaseChoice(text: string): string {
-    return text.charAt(0).toUpperCase() + text.slice(1);
+    return text.charAt(0).toUpperCase() + text.slice(1).replace(/_/g, ' ');
   }
 
   private generateArt = (): void => {
-    // TODO: this should parse data and setup art view.
     this.setState({view: 'art'});
   };
 
@@ -278,7 +277,7 @@ class Home extends React.Component<RouteComponentProps> {
   };
 
   private finalSetup = (): void => {
-    let dimension = 'rtlm_channel';
+    let dimension = 'mktg_channel';
     let selectedVariables: string[] = [];
 
     if (this.variableChoices[dimension]) {
@@ -300,8 +299,11 @@ class Home extends React.Component<RouteComponentProps> {
         const path = item?.Key?._text;
 
         if (typeof path === 'string' && path.slice(-3) === '.gz') {
-          promises.push(axios.get(`${this.amazonUrl}/${path}`).then(content => {
-            this.parseData(content.data, item);
+          promises.push(axios.get(`${this.amazonUrl}/${path}`, {responseType: 'text'}).then(content => {
+            const contentArray = JSON.parse(`[${content.data.replace(/}\n{/g, '},\n{')}]`) as any[];
+            contentArray.forEach(entry => {
+              this.parseData(entry, item);
+            });
           }));
         }
       });

@@ -5,7 +5,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Button, InputFile, Loader, Paper, Typography } from '@snowball-tech/fractal';
 import { AnalyticsBrowser } from '@segment/analytics-next';
 import { UilFileUploadAlt, UilHome } from '@iconscout/react-unicons';
-import { SegmentProperty } from '../../interfaces/S3File';
+import { MarketingChannel, SegmentProperty } from '../../interfaces/S3File';
 import ErrorView from '../Error';
 
 class Datatest extends React.Component<RouteComponentProps> {
@@ -23,10 +23,10 @@ class Datatest extends React.Component<RouteComponentProps> {
     history.push('/');
   };
 
-  private getRandomItem = (list: string[]): string => {
+  private getRandomItem = (list: (string|number)[]): string => {
     const randomIndex = Math.floor(Math.random() * list.length);
 
-    return list[randomIndex];
+    return String(list[randomIndex]);
   };
 
   private getRandomTime = (): {usString: string, date: Date} => {
@@ -58,7 +58,7 @@ class Datatest extends React.Component<RouteComponentProps> {
             const finalData: any[] = [];
             const rows = csvData.split(/\r?\n/).slice(0, -1);
             const headers = (rows.shift() || '').split(',');
-            const requiredHeaders = ['source_and_segment', 'region_adj', 'hills_adj', 'segment_group', 'channel_adj', 'dfr_id', 'segment_name', 'sales_territory_country', 'lead_source', 'high_level_lead_source', 'created_month', 'created_date', 'rtlm_channel'];
+            const requiredHeaders = ['created_date', 'created_month', 'kpi_adjusted', 'sales_territory_country', 'mktg_channel', 'lead_count', 'opp_count', 'aMRR_calc'];
 
             rows.forEach(row => {
               const rowItem = {} as any;
@@ -79,6 +79,8 @@ class Datatest extends React.Component<RouteComponentProps> {
               finalData.forEach(event => {
                 this.sendEventData(event);
               });
+
+              this.setState({loading: false});
             }
           } catch (error) {
             handlError('CSV could not be parsed', csvData);
@@ -101,23 +103,18 @@ class Datatest extends React.Component<RouteComponentProps> {
     this.analytics.track('Referral Event', event);
   };
 
-  private sendEvent = (channel: string): void => {
+  private sendEvent = (channel: MarketingChannel): void => {
     const date = this.getRandomTime();
 
     const data: SegmentProperty = {
-      source_and_segment: this.getRandomItem(['Marketing WWFS', 'Marketing SMB']),
-      region_adj: this.getRandomItem(['US/CA', 'International']),
-      hills_adj: 'Marketing',
-      segment_group: this.getRandomItem(['WWFS', 'SMB']),
-      channel_adj: this.getRandomItem(['Content', 'Email Prospecting', 'Corporate Events', 'Up Market HDL']),
-      dfr_id: `DFR-${Math.floor(Math.random() * 9999999)}`,
-      segment_name: this.getRandomItem(['Majors', 'Enterprise', 'Small Business', 'SOHO', 'Mid Market']),
-      sales_territory_country:this.getRandomItem(['US/CA', 'UK', 'DE']),
-      lead_source: this.getRandomItem(['LeadGen', 'Initial' ]),
-      high_level_lead_source: 'Marketing',
-      created_month: `${date.date.getMonth() + 1}/1/${date.date.getFullYear()}`,
+      sales_territory_country:this.getRandomItem(['US', 'UK', 'DE', 'AU']),
+      created_month: date.date.getMonth() + 1,
       created_date: date.usString,
-      rtlm_channel: channel,
+      kpi_adjusted: this.getRandomItem(['MQL', 'SQL', '']),
+      lead_count: 1,
+      aMRR_calc: `$${Math.floor(Math.random() * 99999)}.00`,
+      opp_count: Number(this.getRandomItem([0, 1])),
+      mktg_channel: channel,
     };
 
     this.sendEventData(data);
@@ -141,10 +138,9 @@ class Datatest extends React.Component<RouteComponentProps> {
           <Typography className="center-content heading-with-caption" variant="heading-1">Trigger Segment events</Typography>
           <Typography className="center-content heading-caption" variant="body-1">Send data to Segment. Send different channel options to populate data. Other date fields will be randomized.</Typography>
           <div className="button-container">
-            <Button className="event-button" label={'Send "Content"'} onClick={() => this.sendEvent('Content')} />
-            <Button className="event-button" label={'Send "Email Prospecting"'} onClick={() => this.sendEvent('Email Prospecting')} />
-            <Button className="event-button" label={'Send "Corporate Events"'} onClick={() => this.sendEvent('Corporate Events')} />
-            <Button className="event-button" label={'Send "Up Market HOL"'} onClick={() => this.sendEvent('Up Market HOL')} />
+            {['Affiliates', 'Content Syndication', 'Direct Mail', 'Email', 'Events', 'SEM'].map(item => {
+              return <Button key={item} className="event-button" label={`Send "${item}"`} onClick={() => this.sendEvent(item as MarketingChannel)} />;
+            })}
           </div>
           <Typography className="center-content heading-with-caption" variant="heading-1">CSV upload</Typography>
           <Typography className="center-content heading-caption" variant="body-1">Upload a CSV file with the expected data format to send to Segment.</Typography>
