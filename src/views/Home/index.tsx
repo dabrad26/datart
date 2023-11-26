@@ -41,8 +41,7 @@ class Home extends React.Component<RouteComponentProps> {
   } = {};
 
   private themeChoices = {
-    'theme-1': ['red', 'yellow', 'blue', 'orange', 'green'],
-    'theme-2': ['orange', 'pink', 'grey', 'purple', 'brown'],
+    'theme-1': ['156, 250, 235', '235, 55, 129', '58, 124, 247', '235, 63, 60', '252, 231, 88'],
   };
 
   private iterableToArray = (iterable: IterableIterator<unknown>): any[] => {
@@ -138,7 +137,7 @@ class Home extends React.Component<RouteComponentProps> {
           {!!(description && !collapseCard) && <Typography className="floating-card--description" variant="body-2">{description}</Typography>}
           <Typography className="floating-card--legend" variant="body-2">{selectedVariables.map((item, index) => {
             return <div key={index} className="ledgend-item">
-              <span style={{backgroundColor: colorSelection[index]}} className="color-preview-item small" />
+              <span style={{backgroundColor: `rgb(${colorSelection[index]})`}} className="color-preview-item small" />
               <span className="legend-text">{item}</span>
             </div>;
           })}</Typography>
@@ -231,13 +230,13 @@ class Home extends React.Component<RouteComponentProps> {
           {!!selectedVariables.length && <>
             <InputRadioGroup className="theme-items" onValueChange={value => this.setState({colorThemeChoice: value, colorSelection: (this.themeChoices as any)[value]})} value={colorThemeChoice}>
               <div className="items">
-                {Object.keys(this.themeChoices).map(key => <InputRadio key={key} label={<div className="color-theme-preview">{(this.themeChoices as any)[key].slice(0, selectedVariables.length).map((color: string) => <span className="color-preview-item" key={color} style={{backgroundColor: color}} />)}</div> as unknown as string} value={key} />)}
+                {Object.keys(this.themeChoices).map(key => <InputRadio key={key} label={<div className="color-theme-preview">{(this.themeChoices as any)[key].slice(0, selectedVariables.length).map((color: string) => <span className="color-preview-item" key={color} style={{backgroundColor: `rgb(${color})`}} />)}</div> as unknown as string} value={key} />)}
               </div>
             </InputRadioGroup>
             <div className="color-pickers">
               {colorSelection.slice(0, selectedVariables.length).map((color, index) => {
                 return <div className="color-picker" key={index}>
-                  <Button label={<span style={{backgroundColor: colorSelection[index], width: 24, height: 24}} className="color-preview-item" /> as unknown as string} icon={<UilAngleDown />} variant="display" onClick={() => this.setState({openColorPicker: openColorPicker === index ? undefined : index})} />
+                  <Button label={<span style={{backgroundColor: `rgb(${colorSelection[index]})`, width: 24, height: 24}} className="color-preview-item" /> as unknown as string} icon={<UilAngleDown />} variant="display" onClick={() => this.setState({openColorPicker: openColorPicker === index ? undefined : index})} />
                   <SketchPicker
                     className={`color-picker--popup ${openColorPicker === index ? 'open' : 'close'}`}
                     color={color}

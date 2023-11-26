@@ -9,10 +9,14 @@ export type ArtworkTypes = 'linear'|'radial'|'time-line'|'time-eye';
 type GradientMap = {
   /** Color of item */
   color: string;
-  /** start as percent of total (should be prior item stop) */
-  start: number;
-  /** Start plus this item's total percent */
-  stop: number
+  /** Percent of opacity */
+  percent: number;
+  /** Angle to render at (linear) */
+  angle: number;
+  /** Direction for radial system */
+  radialDirection: string;
+  /** Item for internal item count sorting */
+  itemCount: number;
 }
 
 export interface ArtBoardProps {
@@ -47,52 +51,62 @@ class ArtBoard extends React.Component<RouteComponentProps&ArtBoardProps> {
   }
 
   private get gradientData(): GradientMap[] {
-    const {colorChoices, data, allItems} = this.props;
-    const totalItems = allItems.length;
-    const finalData: GradientMap[] = [];
+    const {colorChoices, data} = this.props;
     let currentItemsCount = 0;
-    let lastItem: GradientMap|null = null;
     const keys = Object.keys(data);
+    const angle = 360 / keys.length;
+    const directions = ['center', 'top', 'left', 'bottom', 'right'];
 
     keys.forEach(key => {
       currentItemsCount += data[key].length;
     });
 
-    keys.forEach(key => {
-      const itemOffset = Math.floor((((totalItems - currentItemsCount) / totalItems) * 100) / keys.length);
+    const finalData = keys.map((key, index) => {
       const itemCount = data[key].length;
-      const percent = Math.ceil((itemCount / totalItems) * 100);
-      const start = finalData[finalData.length - 1] ? finalData[finalData.length - 1].stop + itemOffset : 0;
-      let stop = start + percent + (itemOffset / 2);
-      stop = stop > 100 ? 100 : stop;
+      const percent = (itemCount / currentItemsCount) * 7;
       const color = colorChoices[key];
-      lastItem = {start, stop, color};
-      finalData.push(lastItem);
+
+      return {
+        itemCount,
+        color,
+        percent,
+        angle: angle * (index + 1),
+        radialDirection: directions[index],
+      };
+    });
+
+    finalData.sort((a, b) => {
+      if (a.itemCount > b.itemCount) return -1;
+      if (a.itemCount < b.itemCount) return 1;
+      return 0;
+    }).forEach((item, index) => {
+      item.radialDirection = directions[index];
     });
 
     return finalData;
   }
 
   private get linearView(): React.ReactNode {
-    return (
-      <div className="art-content" style={{background: `linear-gradient(to right, ${this.gradientData.map(item => `${item.color} ${item.start}% ${item.stop}%`).join(', ')})`}} />
-    );
-  }
-
-  private get radialView(): React.ReactNode {
-    const pageWidth = window.innerWidth;
-    const pageHeight = window.innerHeight;
-    const size = pageWidth >= pageHeight ? pageWidth : pageHeight;
+    const linearData = this.gradientData;
 
     return (
       <div
         className="art-content"
         style={{
-          background: `radial-gradient(${this.gradientData.map(item => `${item.color} ${item.start}% ${item.stop}%`).join(', ')})`,
-          height: size,
-          width: size,
-          minHeight: size,
-          minWidth: size,
+          background: linearData.map(item => `linear-gradient(${item.angle}deg, rgba(${item.color}, ${item.percent}), rgba(${item.color}, 0))`).join(', ')
+        }}
+      />
+    );
+  }
+
+  private get radialView(): React.ReactNode {
+    const linearData = this.gradientData;
+
+    return (
+      <div
+        className="art-content"
+        style={{
+          background: linearData.map(item => `radial-gradient(circle at ${item.radialDirection}, rgba(${item.color}, ${item.percent}), rgba(${item.color}, 0))`).join(', ')
         }}
       />
     );
@@ -110,28 +124,6 @@ class ArtBoard extends React.Component<RouteComponentProps&ArtBoardProps> {
       case 'time-line':
       default:
         return this.notReadyArt;
-    }
-  }
-
-  private resizeChange = (): void => {
-    this.setState({});
-  };
-
-  private get needsResizeWatch(): boolean {
-    const {type} = this.props;
-
-    return ['radial'].includes(type);
-  }
-
-  componentDidMount(): void {
-    if (this.needsResizeWatch) {
-      window.addEventListener('resize', this.resizeChange);
-    }
-  }
-
-  componentWillUnmount(): void {
-    if (this.needsResizeWatch) {
-      window.removeEventListener('resize', this.resizeChange);
     }
   }
 
