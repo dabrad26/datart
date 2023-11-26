@@ -2,7 +2,7 @@ import React from 'react';
 import './ArtBoard.scss';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Card } from '@snowball-tech/fractal';
-import S3File from '../interfaces/S3File';
+import S3File from '../../interfaces/S3File';
 
 export type ArtworkTypes = 'linear'|'radial'|'time-line'|'time-eye';
 

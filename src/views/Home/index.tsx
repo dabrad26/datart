@@ -8,7 +8,7 @@ import axios from 'axios';
 import xml2json from 'xml-js';
 import { SketchPicker } from 'react-color';
 import S3File from '../../interfaces/S3File';
-import ArtBoard, { ArtworkTypes } from '../../ArtBoard';
+import ArtBoard, { ArtworkTypes } from '../ArtBoard';
 import linearImage from './linear.png';
 import radialImage from './radial.png';
 import timeEyeImage from './time-eye.png';
