@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import './ArtBoard.scss';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { Card } from '@snowball-tech/fractal';
-import S3File from '../../interfaces/S3File';
+import S3File, { SegmentProperty } from '../../interfaces/S3File';
+import ErrorView from '../Error';
 
 export type ArtworkTypes = 'linear'|'radial'|'time-line'|'time-eye';
 
@@ -19,6 +20,21 @@ type GradientMap = {
   itemCount: number;
 }
 
+type TimeItems = {
+  /** The date to render */
+  date: Date;
+  /** Properties to keep track */
+  properties: SegmentProperty;
+  /** Color to render */
+  color: string;
+  /** Number of hours until next item */
+  hoursUntilNext?: number;
+  /** Number of hours since first item */
+  hoursSinceStart?: number;
+  /** Key to match the other data */
+  key: string;
+}
+
 export interface ArtBoardProps {
   type: ArtworkTypes;
   allItems: S3File[];
@@ -29,26 +45,11 @@ export interface ArtBoardProps {
 }
 
 class ArtBoard extends React.Component<RouteComponentProps&ArtBoardProps> {
+  state = {
+    error: false
+  };
 
-  /** This will be deleted in the end */
-  private get notReadyArt(): React.ReactNode {
-    const {data, timeVariable, allItems, colorChoices} = this.props;
-    const totalByItem: {[key: string]: number} = {};
-
-    return (
-      <Card
-          className="temp-data-dump"
-          color="success">{
-            JSON.stringify({
-              totalItems: allItems.length,
-              colorChoices,
-              timeVariable,
-              totalByItem,
-              data
-            }, undefined, 2)
-          }</Card>
-    );
-  }
+  private errorData: any = {};
 
   private get gradientData(): GradientMap[] {
     const {colorChoices, data} = this.props;
@@ -86,29 +87,173 @@ class ArtBoard extends React.Component<RouteComponentProps&ArtBoardProps> {
     return finalData;
   }
 
+  private get timeBasedData(): TimeItems[] {
+    const {colorChoices, data, timeVariable} = this.props;
+    const allItems: TimeItems[] = [];
+
+    Object.keys(data).forEach((key, index) => {
+      data[key].forEach((item, itemIndex) => {
+        const date = new Date((item.properties as any)[timeVariable || ''] || 'NO_DATE');
+
+        if (date && typeof date.getTime === 'function' && !isNaN(date.getTime())) {
+          if (date.getHours() === 0 && date.getMinutes() === 0) {
+            date.setHours((index + itemIndex) % 24, (index + itemIndex) % 60);
+          }
+
+          allItems.push({
+            date,
+            key: key,
+            properties: item.properties,
+            color: colorChoices[key],
+          });
+        }
+      });
+    });
+
+    allItems.sort((a, b) => {
+      if (a.date.getTime() < b.date.getTime()) return -1;
+      if (a.date.getTime() > b.date.getTime()) return 1;
+      return 0;
+    });
+
+    const firstItem = allItems[0];
+
+    allItems.forEach((item, index) => {
+      const nextItem = allItems[index + 1];
+      const timeDiffFromFirst = Math.floor((item.date.getTime() - firstItem.date.getTime()) / 3600000);
+
+      item.hoursSinceStart = timeDiffFromFirst;
+
+      if (nextItem) {
+        const timeDiff = Math.floor((nextItem.date.getTime() - item.date.getTime()) / 3600000);
+        item.hoursUntilNext = timeDiff;
+      }
+    });
+
+    return allItems;
+  }
+
   private get linearView(): React.ReactNode {
-    const linearData = this.gradientData;
+    const data = this.gradientData;
 
     return (
       <div
         className="art-content"
         style={{
-          background: linearData.map(item => `linear-gradient(${item.angle}deg, rgba(${item.color}, ${item.percent}), rgba(${item.color}, 0))`).join(', ')
+          background: data.map(item => `linear-gradient(${item.angle}deg, rgba(${item.color}, ${item.percent}), rgba(${item.color}, 0))`).join(', ')
         }}
       />
     );
   }
 
   private get radialView(): React.ReactNode {
-    const linearData = this.gradientData;
+    const data = this.gradientData;
 
     return (
       <div
         className="art-content"
         style={{
-          background: linearData.map(item => `radial-gradient(circle at ${item.radialDirection}, rgba(${item.color}, ${item.percent}), rgba(${item.color}, 0))`).join(', ')
+          background: data.map(item => `radial-gradient(circle at ${item.radialDirection}, rgba(${item.color}, ${item.percent}), rgba(${item.color}, 0))`).join(', ')
         }}
       />
+    );
+  }
+
+  private get timeLineView(): React.ReactNode {
+    const data = this.timeBasedData;
+
+    if (!data.length) {
+      this.errorData = {
+        message: 'No items available to render or date items were invalid.',
+        data: data,
+        props: this.props,
+      };
+
+      this.setState({error: true});
+
+      return null;
+    }
+
+    return (
+      <div className="art-content">
+        <div className="time-lines">
+          {data.map((item, index) => {
+            return (
+              <>
+                <div key={index} className="line-item" style={{backgroundColor: `rgb(${item.color})`}} />
+                <div key={`divider-${index}`} className="line-divider" style={{width: item.hoursUntilNext}} />
+              </>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  private get timeEyeView(): React.ReactNode {
+    const data = this.timeBasedData;
+
+    if (!data.length) {
+      this.errorData = {
+        message: 'No items available to render or date items were invalid.',
+        data: data,
+        props: this.props,
+      };
+
+      this.setState({error: true});
+
+      return null;
+    }
+
+    const keyItems: {[key: string]: TimeItems[]} = {};
+
+    data.forEach(item => {
+      const itemList = keyItems[item.key];
+
+      if (itemList) {
+        itemList.push(item);
+      } else {
+        keyItems[item.key] = [item];
+      }
+    });
+
+    const size = window.innerHeight * 0.8;
+    const totalItems = Object.keys(keyItems).length;
+    let overlay = 0;
+
+    switch (totalItems) {
+      case 5:
+        overlay = -250;
+        break;
+      case 4:
+        overlay = -175;
+        break;
+      case 3:
+        overlay = -100;
+        break;
+      case 2:
+        overlay = -25;
+        break;
+    }
+
+    return (
+      <div className="art-content">
+        <div className="time-eyes">
+          {Object.keys(keyItems).map((key, index) => {
+            const items = keyItems[key] || [];
+            const lastItem = items[items.length - 1];
+
+            return (
+              <div key={`${key}-${index}`} className="time-eye" style={{marginLeft: overlay / 2, marginRight: overlay / 2, width: size, height: size, minWidth: size, minHeight: size}}>
+                {items.map((item, itemIndex) => {
+                  const percentSize = ((item.hoursSinceStart || 0) * 2) / ((lastItem.hoursSinceStart || 0) * 2) * 100;
+                  return <div key={`${key}-${index}-${itemIndex}`} className="time-eye-circle" style={{width: `${percentSize}%`, height: `${percentSize}%`, borderColor: `rgb(${item.color})`}} />;
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     );
   }
 
@@ -116,18 +261,47 @@ class ArtBoard extends React.Component<RouteComponentProps&ArtBoardProps> {
     const {type} = this.props;
 
     switch (type) {
-      case 'linear':
-        return this.linearView;
       case 'radial':
         return this.radialView;
-      case 'time-eye':
       case 'time-line':
+        return this.timeLineView;
+      case 'time-eye':
+        return this.timeEyeView;
       default:
-        return this.notReadyArt;
+      case 'linear':
+        return this.linearView;
+    }
+  }
+
+  private resizeChange = (): void => {
+    this.setState({});
+  };
+
+  private get needsResizeWatch(): boolean {
+    const {type} = this.props;
+
+    return ['time-eye'].includes(type);
+  }
+
+  componentDidMount(): void {
+    if (this.needsResizeWatch) {
+      window.addEventListener('resize', this.resizeChange);
+    }
+  }
+
+  componentWillUnmount(): void {
+    if (this.needsResizeWatch) {
+      window.removeEventListener('resize', this.resizeChange);
     }
   }
 
   render(): React.ReactNode {
+    const {error} = this.state;
+
+    if (error) {
+      return <ErrorView data={this.errorData} message="Unable to render art board" />;
+    }
+
     return (
       <div className='art-board'>
         {this.mainView}

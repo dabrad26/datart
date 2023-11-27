@@ -193,7 +193,6 @@ class Home extends React.Component<RouteComponentProps> {
             label="Choose a dimension"
             value={dimension}
             onSelect={data => {
-
               this.setState({dimension: data, selectedVariables: this.iterableToArray(this.variableChoices[data].keys()).slice(0, 2)});
             }}
           >
@@ -226,13 +225,21 @@ class Home extends React.Component<RouteComponentProps> {
               return <SelectItem key={dimensionKey} value={dimensionKey}>{`${this.uppercaseChoice(dimensionKey)} (${dimensionKey})`}</SelectItem>;
             })}
           </Select>}
-          <Typography className="fake-label" variant="body-1">Choose a color palette</Typography>
           {!!selectedVariables.length && <>
-            <InputRadioGroup className="theme-items" onValueChange={value => this.setState({colorThemeChoice: value, colorSelection: (this.themeChoices as any)[value]})} value={colorThemeChoice}>
-              <div className="items">
-                {Object.keys(this.themeChoices).map(key => <InputRadio key={key} label={<div className="color-theme-preview">{(this.themeChoices as any)[key].slice(0, selectedVariables.length).map((color: string) => <span className="color-preview-item" key={color} style={{backgroundColor: `rgb(${color})`}} />)}</div> as unknown as string} value={key} />)}
-              </div>
-            </InputRadioGroup>
+            <Select
+              label="Choose a color palette"
+              value={colorThemeChoice}
+              onSelect={value => {
+                if (value && value !== 'custom') {
+                  this.setState({colorThemeChoice: value, colorSelection: (this.themeChoices as any)[value]});
+                } else {
+                  this.setState({colorThemeChoice: value});
+                }
+              }}
+            >
+              {Object.keys(this.themeChoices).map(key => <SelectItem key={key} value={key}><div className="color-theme-preview">{(this.themeChoices as any)[key].slice(0, selectedVariables.length).map((color: string) => <span className="color-preview-item" key={color} style={{backgroundColor: `rgb(${color})`}} />)}</div></SelectItem>)}
+              <SelectItem key={'custom'} value={'custom'}>Custom colors</SelectItem>
+            </Select>
             <div className="color-pickers">
               {colorSelection.slice(0, selectedVariables.length).map((color, index) => {
                 return <div className="color-picker" key={index}>
@@ -243,8 +250,8 @@ class Home extends React.Component<RouteComponentProps> {
                     disableAlpha={true}
                     onChangeComplete={newColor => {
                       const newColorSelection = colorSelection.map(colorString => colorString);
-                      newColorSelection[index] = newColor.hex;
-                      this.setState({colorSelection: newColorSelection});
+                      newColorSelection[index] = `${newColor.rgb.r}, ${newColor.rgb.g}, ${newColor.rgb.b}`;
+                      this.setState({colorSelection: newColorSelection, colorThemeChoice: 'custom'});
                     }}
                   />
                 </div>;
@@ -385,7 +392,31 @@ class Home extends React.Component<RouteComponentProps> {
     }, 1200);
   };
 
+  private clickOutsideColor = (event: MouseEvent): void => {
+    const {openColorPicker} = this.state;
+
+    const checkParentIsColorPicker = (element?: Node): boolean => {
+      if (element?.parentElement) {
+        return element.parentElement?.classList.contains('color-picker') ? true : checkParentIsColorPicker(element.parentElement);
+      }
+
+      return false;
+    };
+
+    if (openColorPicker !== undefined) {
+      if (!checkParentIsColorPicker(event.target as Node)) {
+        this.setState({openColorPicker: undefined});
+      }
+    }
+  };
+
+  componentWillUnmount(): void {
+    window.removeEventListener('click', this.clickOutsideColor);
+  }
+
   componentDidMount(): void {
+    window.addEventListener('click', this.clickOutsideColor);
+
     setTimeout(() => {
       this.setState({longLoading: true});
     }, 4000);
