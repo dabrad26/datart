@@ -218,22 +218,14 @@ class ArtBoard extends React.Component<RouteComponentProps&ArtBoardProps> {
     });
 
     const size = window.innerHeight * 0.8;
+    const windowSize = window.innerWidth;
     const totalItems = Object.keys(keyItems).length;
+    const neededSize = size * totalItems;
     let overlay = 0;
 
-    switch (totalItems) {
-      case 5:
-        overlay = -250;
-        break;
-      case 4:
-        overlay = -175;
-        break;
-      case 3:
-        overlay = -100;
-        break;
-      case 2:
-        overlay = -25;
-        break;
+    if (windowSize < neededSize) {
+      const overflow = neededSize - (windowSize + windowSize * 0.05);
+      overlay = -1 * (overflow / totalItems);
     }
 
     return (
