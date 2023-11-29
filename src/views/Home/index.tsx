@@ -41,14 +41,19 @@ class Home extends React.Component<RouteComponentProps> {
   } = {};
 
   private themeChoices = {
-    'theme-1': ['77, 87, 240', '212, 235, 80', '235, 78, 195', '133, 251, 170', '159, 61, 246'],
-    'theme-2': ['235, 53, 49', '241, 150, 55', '253, 235, 79', '123, 250, 77', '50, 128, 247'],
+    'theme-1': ['0, 0, 255', '0, 0, 0', '255, 0, 255', '0, 255, 0', '255, 255, 0'],
+    'theme-2': ['77, 87, 240', '212, 235, 80', '235, 78, 195', '133, 251, 170', '159, 61, 246'],
     'theme-3': ['130, 234, 252', '251, 234, 80', '234, 69, 38', '18, 71, 215', '178, 244, 78'],
-    'theme-4': ['156, 250, 235', '235, 55, 129', '58, 124, 247', '235, 63, 60', '252, 231, 88'],
-    'theme-5': ['175, 205, 113', '98, 104, 200', '177, 130, 214', '238, 124, 157', '133, 184, 220'],
-    'theme-6': ['117, 39, 199', '220, 69, 184', '220, 69, 184', '66, 149, 202', '92, 192, 86'],
-    'theme-7': ['235, 53, 117', '28, 83, 188', '223, 184, 63', '75, 156, 50', '84, 186, 160'],
-    'theme-8': ['31, 89, 189', '227, 220, 73', '239, 123, 64', '235, 63, 176', '135, 194, 59'],
+    'theme-4': ['235, 53, 49', '241, 150, 55', '253, 235, 79', '123, 250, 77', '50, 128, 247'],
+    'theme-5': ['240, 169, 83', '57, 59, 78', '148, 70, 146', '73, 156, 141', '41, 87, 162'],
+    'theme-6': ['207, 207, 207', '221, 77, 63', '248, 208, 96', '244, 182, 245', '0, 0, 0'],
+    'theme-7': ['50, 113, 102', '149, 156, 98', '198, 170, 114', '187, 161, 197', '90, 179, 118'],
+    'theme-8': ['18, 14, 18', '178, 184, 193', '108, 117, 148', '209, 185, 73', '240, 235, 111'],
+    'theme-9': ['151, 39, 42', '231, 103, 43', '245, 183, 114', '248, 210, 164', '143, 132, 87'],
+    'theme-10': ['109, 115, 247', '47, 58, 238', '214, 224, 255', '212, 121, 155', '188, 16, 69'],
+    'theme-11': ['198, 248, 255', '195, 214, 252', '157, 176, 249', '123, 142, 248', '85, 105, 246'],
+    'theme-12': ['58, 35, 77', '87, 71, 99', '205, 202, 213', '225, 220, 232', '186, 175, 202'],
+    'theme-13': ['216, 219, 195', '157, 211, 217', '91, 154, 160', '76, 118, 131', '45, 85, 111'],
   };
 
   private iterableToArray = (iterable: IterableIterator<unknown>): any[] => {
@@ -195,7 +200,7 @@ class Home extends React.Component<RouteComponentProps> {
         {this.headerLabel}
         <Paper elevation="1" className="has-actions-paper">
           <Typography className="form-headings" variant="heading-1">Data source</Typography>
-          <Select label="Select your data" value={this.amazonUrl}><SelectItem value={this.amazonUrl}>{this.amazonUrl}</SelectItem></Select>
+          <Select label="Data source" value={this.amazonUrl}><SelectItem value={this.amazonUrl}>{this.amazonUrl}</SelectItem></Select>
           <Select
             label="Choose a dimension"
             value={dimension}
@@ -215,23 +220,21 @@ class Home extends React.Component<RouteComponentProps> {
             })}
           </div>
           <Typography className="form-headings" variant="heading-1">Artwork</Typography>
-          <InputRadioGroup onValueChange={changeArtStyle} value={artworkType}>
-            <div className="items">
-              <InputRadio label={<img className="artwork-preview" src={linearImage} title="Linear" alt="Linear" /> as unknown as string} value="linear" />
-              <InputRadio label={<img className="artwork-preview" src={radialImage} title="Radial" alt="Radial" /> as unknown as string} value="radial" />
-            </div>
-            <Typography className="fake-label" variant="body-1">Time based art styles</Typography>
-            <Typography className="fake-helper" variant="caption-median">Choose more complex art styles by adding a time dimension </Typography>
-            <div className="items">
-              <InputRadio label={<img className="artwork-preview" src={timeLineImage} title="Time Line" alt="Time Line" /> as unknown as string} value="time-line" />
-              <InputRadio label={<img className="artwork-preview" src={timeEyeImage} title="Time Eye" alt="Time Eye" /> as unknown as string} value="time-eye" />
-            </div>
+          <Typography className="fake-label" variant="body-1">Choose a style</Typography>
+          <InputRadioGroup orientation="horizontal" onValueChange={changeArtStyle} value={artworkType}>
+            <InputRadio label={<><Typography className="artwork-preview--name" variant="body-1">Linear gradient</Typography><img className="artwork-preview" src={linearImage} title="Linear gradient" alt="Linear gradient" /></> as unknown as string} value="linear" />
+            <InputRadio label={<><Typography className="artwork-preview--name" variant="body-1">Radial gradient</Typography><img className="artwork-preview" src={radialImage} title="Radial gradient" alt="Radial gradient" /></> as unknown as string} value="radial" />
+            <InputRadio label={<><Typography className="artwork-preview--name" variant="body-1">Draw lines</Typography><img className="artwork-preview" src={timeLineImage} title="Draw lines" alt="Draw lines" /></> as unknown as string} value="time-line" />
+            <InputRadio label={<><Typography className="artwork-preview--name" variant="body-1">Draw circles</Typography><img className="artwork-preview" src={timeEyeImage} title="Draw circles" alt="Draw circles" /></> as unknown as string} value="time-eye" />
           </InputRadioGroup>
-          {artworkType.includes('time-') && <Select label="Which dimension represents time?" value={timeVariable} onSelect={data => this.setState({timeVariable: data})}>
-            {dimensions.map(dimensionKey => {
-              return <SelectItem key={dimensionKey} value={dimensionKey}>{`${this.uppercaseChoice(dimensionKey)} (${dimensionKey})`}</SelectItem>;
-            })}
-          </Select>}
+          {artworkType.includes('time-') && <>
+            {!timeVariable && <Typography className="time-required" variant="caption-median">This style requires a time based dimension.</Typography>}
+            <Select label="Choose a time based dimension" value={timeVariable} onSelect={data => this.setState({timeVariable: data})}>
+              {dimensions.map(dimensionKey => {
+                return <SelectItem key={dimensionKey} value={dimensionKey}>{`${this.uppercaseChoice(dimensionKey)} (${dimensionKey})`}</SelectItem>;
+              })}
+            </Select>
+          </>}
           {!!selectedVariables.length && <>
             <Select
               label="Choose a color palette"
@@ -250,7 +253,7 @@ class Home extends React.Component<RouteComponentProps> {
             <div className="color-pickers">
               {colorSelection.slice(0, selectedVariables.length).map((color, index) => {
                 return <div className="color-picker" key={index}>
-                  <Button label={<span style={{backgroundColor: `rgb(${colorSelection[index]})`, width: 24, height: 24}} className="color-preview-item" /> as unknown as string} icon={<UilAngleDown />} variant="display" onClick={() => this.setState({openColorPicker: openColorPicker === index ? undefined : index})} />
+                  <Button label={<span style={{backgroundColor: `rgb(${colorSelection[index]})`}} className="color-preview-item" /> as unknown as string} icon={<UilAngleDown />} variant="display" onClick={() => this.setState({openColorPicker: openColorPicker === index ? undefined : index})} />
                   <SketchPicker
                     className={`color-picker--popup ${openColorPicker === index ? 'open' : 'close'}`}
                     color={color}
@@ -265,8 +268,8 @@ class Home extends React.Component<RouteComponentProps> {
               })}
             </div>
           </>}
-          <InputText label="Title (optional)" onChange={(_event, data) => this.setState({title: data})} placeholder="Add a title to your artwork" type="text" value={title} />
-          <Textarea label="Description (optional)" onChange={(_event, data) => this.setState({description: data})} placeholder="Include a more detail instruction for your art." value={description}></Textarea>
+          <InputText label="Title & description (optional)" onChange={(_event, data) => this.setState({title: data})} placeholder="Add a title to your artwork" type="text" className="tighter-item" value={title} />
+          <Textarea onChange={(_event, data) => this.setState({description: data})} placeholder="Include a more detailed message." value={description}></Textarea>
           <Button className="paper-submit-button" disabled={disabledGenerate} label="Generate art" onClick={this.generateArt} />
           <Button className="paper-secondary-button" variant="secondary" label="Go to data loader" onClick={this.openDataLoader} />
         </Paper>
