@@ -8,7 +8,7 @@ import { UilFileUploadAlt, UilHome } from '@iconscout/react-unicons';
 import { MarketingChannel, SegmentProperty } from '../../interfaces/S3File';
 import ErrorView from '../Error';
 
-class Datatest extends React.Component<RouteComponentProps> {
+class Datatest extends React.Component<{csvUpload?: boolean}&RouteComponentProps> {
   state = {
     loading: false,
     error: false,
@@ -122,6 +122,7 @@ class Datatest extends React.Component<RouteComponentProps> {
 
   render(): React.ReactNode {
     const {loading, error} = this.state;
+    const {csvUpload} = this.props;
 
     if (loading) {
       return <Loader size="xl" />;
@@ -135,18 +136,22 @@ class Datatest extends React.Component<RouteComponentProps> {
       <div className='data-test standard-content'>
         <Paper elevation="1">
           <Button className="breadcrumb" icon={<UilHome />} iconPosition="left" label="Home" variant="text" onClick={this.goHome} />
-          <Typography className="center-content heading-with-caption" variant="heading-1">Trigger Segment events</Typography>
-          <Typography className="center-content heading-caption" variant="body-1">Send data to Segment. Send different channel options to populate data. Other date fields will be randomized.</Typography>
-          <div className="button-container">
-            {['Affiliates', 'Content Syndication', 'Direct Mail', 'Email', 'Events', 'SEM'].map(item => {
-              return <Button key={item} className="event-button" label={`Send "${item}"`} onClick={() => this.sendEvent(item as MarketingChannel)} />;
-            })}
-          </div>
-          <Typography className="center-content heading-with-caption" variant="heading-1">CSV upload</Typography>
-          <Typography className="center-content heading-caption" variant="body-1">Upload a CSV file with the expected data format to send to Segment.</Typography>
-          <div className="button-container">
-            <InputFile label="Choose file" triggerProps={{icon: <UilFileUploadAlt />}} onChange={this.uploadCsv} />
-          </div>
+          {!csvUpload && <>
+            <Typography className="center-content heading-with-caption" variant="heading-1">Product site</Typography>
+            <Typography className="center-content heading-caption" variant="body-1">Test integration site for sending data to Segment. Normally these integrations would use different Segment SDKs to send data for each different source. Send different channel options to populate data. Other data fields will be randomized.</Typography>
+            <div className="button-container">
+              {['Affiliates', 'Content Syndication', 'Direct Mail', 'Email', 'Events', 'SEM'].map(item => {
+                return <Button key={item} className="event-button" label={`Send "${item}"`} onClick={() => this.sendEvent(item as MarketingChannel)} />;
+              })}
+            </div>
+          </>}
+          {csvUpload && <>
+            <Typography className="center-content heading-with-caption" variant="heading-1">Upload data</Typography>
+            <Typography className="center-content heading-caption" variant="body-1">Upload a CSV file with the expected data format to send to Segment.</Typography>
+            <div className="button-container">
+              <InputFile label="Choose file" triggerProps={{icon: <UilFileUploadAlt />}} onChange={this.uploadCsv} />
+            </div>
+          </>}
         </Paper>
       </div>
     );

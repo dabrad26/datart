@@ -23,6 +23,9 @@ class App extends React.Component<RouteComponentProps> {
           <Home />
         </Route>
         <Route exact={true} path="/data-test">
+          <DataTest csvUpload={true} />
+        </Route>
+        <Route exact={true} path="/product-test">
           <DataTest />
         </Route>
         <Route path="*">

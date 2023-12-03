@@ -73,14 +73,16 @@
 
   .paper-submit-button {
     position: absolute;
-    right: 32px;
+    right: 16px;
     bottom: 32px;
   }
 
   .paper-secondary-button {
     position: absolute;
-    left: 32px;
+    left: 16px;
     bottom: 32px;
+    display: flex;
+    gap: 0.5rem;
   }
 
   @media (max-width: 768px) {

@@ -110,8 +110,8 @@ class Home extends React.Component<RouteComponentProps> {
     this.setState({view: 'art'});
   };
 
-  private openDataLoader = (): void => {
-    window.open('/data-test', '_blank');
+  private openDataLoader = (csv: boolean): void => {
+    window.open(csv ? '/data-test' : 'product-test', '_blank');
   };
 
   private get artView(): React.ReactNode {
@@ -271,7 +271,10 @@ class Home extends React.Component<RouteComponentProps> {
           <InputText label="Title & description (optional)" onChange={(_event, data) => this.setState({title: data})} placeholder="Add a title to your artwork" type="text" className="tighter-item" value={title} />
           <Textarea onChange={(_event, data) => this.setState({description: data})} placeholder="Include a more detailed message." value={description}></Textarea>
           <Button className="paper-submit-button" disabled={disabledGenerate} label="Generate art" onClick={this.generateArt} />
-          <Button className="paper-secondary-button" variant="secondary" label="Go to data loader" onClick={this.openDataLoader} />
+          <div className="paper-secondary-button">
+            <Button variant="secondary" label="Upload data" onClick={() => this.openDataLoader(true)} />
+            <Button variant="secondary" label="Product site" onClick={() => this.openDataLoader(false)} />
+          </div>
         </Paper>
       </>
     );
