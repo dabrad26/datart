@@ -305,6 +305,11 @@ class Home extends React.Component<RouteComponentProps> {
     }
   }
 
+  private resetDataStore = (): void => {
+    this.allItems = [];
+    this.variableChoices = {};
+  };
+
   private parseData = (apiData: any, s3Response: any): void => {
     const newItem: S3File = {
       event: apiData.event,
@@ -365,6 +370,7 @@ class Home extends React.Component<RouteComponentProps> {
 
   private makeApiCall = (): void => {
     console.info('Making API calls for real data');
+    this.resetDataStore();
     axios.get(`${this.amazonUrl}/?list-type=2`).then(response => {
       const promises: Promise<unknown>[] = [];
 
@@ -393,6 +399,7 @@ class Home extends React.Component<RouteComponentProps> {
 
   private useMockData = (): void => {
     console.info('Loading mock data');
+    this.resetDataStore();
     mockApiData.items.forEach((item, index) => {
       if (mockApiData.s3Responses[index]) {
         this.parseData(item, mockApiData.s3Responses[index]);

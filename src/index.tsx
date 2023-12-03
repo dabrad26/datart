@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import 'normalize.css';
 import '@snowball-tech/design-tokens/dist/web/css/variables.css';
@@ -12,8 +11,6 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <Router>
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
+    <App />
   </Router>,
 );

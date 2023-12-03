@@ -100,12 +100,14 @@ class ArtBoard extends React.Component<RouteComponentProps&ArtBoardProps> {
             date.setHours((index + itemIndex) % 24, (index + itemIndex) % 60);
           }
 
-          allItems.push({
-            date,
-            key: key,
-            properties: item.properties,
-            color: colorChoices[key],
-          });
+          if (date.getTime() > 1672560000000) {
+            allItems.push({
+              date,
+              key: key,
+              properties: item.properties,
+              color: colorChoices[key],
+            });
+          }
         }
       });
     });

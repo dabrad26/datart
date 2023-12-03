@@ -30,7 +30,7 @@ class Datatest extends React.Component<{csvUpload?: boolean}&RouteComponentProps
   };
 
   private getRandomTime = (): {usString: string, date: Date} => {
-    const start = new Date('2019-01-22T18:03:03.999Z').getTime();
+    const start = new Date('2023-01-02T18:03:03.999Z').getTime();
     const end = new Date().getTime();
     const date = new Date(+start + Math.random() * (end - start));
 
