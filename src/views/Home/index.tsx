@@ -231,7 +231,7 @@ class Home extends React.Component<RouteComponentProps> {
             <InputRadio label={<><Typography className="artwork-preview--name" variant="body-1">Draw circles</Typography><img className="artwork-preview" src={timeEyeImage} title="Draw circles" alt="Draw circles" /></> as unknown as string} value="time-eye" />
           </InputRadioGroup>
           {artworkType.includes('time-') && <>
-            {!timeVariable && <Typography className="time-required" variant="caption-median">This style requires a time based dimension.</Typography>}
+            {!timeVariable && <Typography className="time-required" variant="caption-median">This style requires a time based dimension. For demos "Created date (created_date)" is the best choice.</Typography>}
             <Select label="Choose a time based dimension" value={timeVariable} onSelect={data => this.setState({timeVariable: data})}>
               {dimensions.map(dimensionKey => {
                 return <SelectItem key={dimensionKey} value={dimensionKey}>{`${this.uppercaseChoice(dimensionKey)} (${dimensionKey})`}</SelectItem>;
