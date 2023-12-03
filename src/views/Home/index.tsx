@@ -33,6 +33,9 @@ class Home extends React.Component<RouteComponentProps> {
     openColorPicker: undefined as number|undefined,
   };
 
+  // Turning off real API calls until final demo. Using mock data.
+  // This should be turned back on for the demo.  But turned back to false after the demo for keeping demo up.
+  private useRealData = false;
   private errorData = '';
   private amazonUrl = 'https://datart-hackathon.s3.us-east-2.amazonaws.com';
   private allItems: S3File[] = [];
@@ -200,7 +203,7 @@ class Home extends React.Component<RouteComponentProps> {
         {this.headerLabel}
         <Paper elevation="1" className="has-actions-paper">
           <Typography className="form-headings" variant="heading-1">Data source</Typography>
-          <Select label="Data source" value={this.amazonUrl}><SelectItem value={this.amazonUrl}>{this.amazonUrl}</SelectItem></Select>
+          <Select label="Data source" value={this.amazonUrl}><SelectItem value={this.amazonUrl}>{this.useRealData ? this.amazonUrl : `${this.amazonUrl} (Demo)`}</SelectItem></Select>
           <Select
             label="Choose a dimension"
             value={dimension}
@@ -441,11 +444,7 @@ class Home extends React.Component<RouteComponentProps> {
       this.setState({longLoading: true});
     }, 4000);
 
-    // Turning off real API calls until final demo. Using mock data
-    // This should be turned back on for the demo
-    const useRealData = false;
-
-    if (useRealData) {
+    if (this.useRealData) {
       this.makeApiCall();
     } else {
       this.useMockData();
