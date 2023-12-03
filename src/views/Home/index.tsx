@@ -165,8 +165,8 @@ class Home extends React.Component<RouteComponentProps> {
   private get headerLabel(): React.ReactNode {
     return (
       <>
-        <Typography className="center-content heading-with-caption" variant="display-wide">Make art with data</Typography>
-        <Typography className="center-content heading-caption content-push" variant="heading-2">... and share it with your team!</Typography>
+        <Typography className="center-content heading-with-caption" variant="heading-1">Make art with data</Typography>
+        <Typography className="center-content heading-caption content-push" variant="heading-4">... and share it with your team!</Typography>
       </>
     );
   }
