@@ -19,13 +19,13 @@ class App extends React.Component<RouteComponentProps> {
   render(): React.ReactNode {
     return (
       <Switch>
-        <Route exact={true} path="/">
+        <Route exact={true} path="/datart">
           <Home />
         </Route>
-        <Route exact={true} path="/data-test">
+        <Route exact={true} path="/datart/data-test">
           <DataTest csvUpload={true} />
         </Route>
-        <Route exact={true} path="/product-test">
+        <Route exact={true} path="/datart/product-test">
           <DataTest />
         </Route>
         <Route path="*">

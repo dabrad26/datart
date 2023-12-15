@@ -22,7 +22,7 @@ class Home extends React.Component<RouteComponentProps> {
     error: false,
     view: 'form',
     selectedVariables: [] as string[],
-    timeVariable: '',
+    timeVariable: 'created_date',
     dimension: '',
     title: '',
     description: '',
