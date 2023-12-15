@@ -35,7 +35,7 @@ class Home extends React.Component<RouteComponentProps> {
 
   // Turning off real API calls until final demo. Using mock data.
   // This should be turned back on for the demo.  But turned back to false after the demo for keeping demo up.
-  private useRealData = true;
+  private useRealData = false;
   private errorData = '';
   private amazonUrl = 'https://datart-hackathon.s3.us-east-2.amazonaws.com';
   private allItems: S3File[] = [];
